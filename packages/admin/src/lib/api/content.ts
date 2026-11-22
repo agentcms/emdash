@@ -266,6 +266,19 @@ export async function fetchContentAuthors(collection: string): Promise<ContentAu
 }
 
 /**
+ * Number of live entries per locale in a collection, in every status.
+ */
+export async function fetchContentLocaleCounts(
+	collection: string,
+): Promise<{ counts: Record<string, number>; total: number }> {
+	const response = await apiFetch(`${API_BASE}/content/${collection}/locale-counts`);
+	return parseApiResponse<{ counts: Record<string, number>; total: number }>(
+		response,
+		i18n._(msg`Failed to fetch entry counts`),
+	);
+}
+
+/**
  * Fetch single content item
  */
 export async function fetchContent(

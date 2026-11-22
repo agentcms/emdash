@@ -149,6 +149,8 @@ export interface ContentListProps {
 	activeLocale?: string;
 	/** Callback when locale filter changes */
 	onLocaleChange?: (locale: string) => void;
+	/** Live entries per locale, shown in the locale switcher */
+	localeCounts?: Record<string, number>;
 	/** URL pattern for published content links (e.g. `/blog/{slug}`) */
 	urlPattern?: string;
 	/** Collection field slug powering the Title column (falls back to the title chain). */
@@ -293,6 +295,7 @@ export function ContentList({
 	i18n,
 	activeLocale,
 	onLocaleChange,
+	localeCounts,
 	urlPattern,
 	titleField,
 	dateField,
@@ -527,6 +530,7 @@ export function ContentList({
 							defaultLocale={i18n.defaultLocale}
 							value={activeLocale}
 							onChange={onLocaleChange}
+							counts={localeCounts}
 							size="sm"
 						/>
 					)}

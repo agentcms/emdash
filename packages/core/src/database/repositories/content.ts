@@ -2200,6 +2200,25 @@ export class ContentRepository {
 	}
 
 	/**
+	 * Number of live (non-trashed) entries per locale, in every status.
+	 * Locales without entries are absent from the result.
+	 */
+	async countByLocale(type: string): Promise<Record<string, number>> {
+		const tableName = getTableName(type);
+		const rows = await this.db
+			.selectFrom(tableName as keyof Database)
+			.select(["locale" as never, (eb) => eb.fn.countAll<number>().as("count")])
+			.where("deleted_at" as never, "is", null)
+			.groupBy("locale" as never)
+			.execute();
+		const counts: Record<string, number> = {};
+		for (const row of rows as Array<{ locale: string | null; count: number | string }>) {
+			if (row.locale) counts[row.locale] = Number(row.count);
+		}
+		return counts;
+	}
+
+	/**
 	 * Distinct, non-null `author_id` values across the collection's live
 	 * (non-trashed) content. Used to populate the admin author filter with
 	 * only the users who have actually authored entries, rather than the

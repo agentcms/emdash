@@ -176,6 +176,12 @@ export function injectCoreRoutes(
 		entrypoint: resolveRoute("api/content/[collection]/authors.ts"),
 	});
 
+	// Entry counts per locale (for the admin locale switcher)
+	injectRoute({
+		pattern: "/_emdash/api/content/[collection]/locale-counts",
+		entrypoint: resolveRoute("api/content/[collection]/locale-counts.ts"),
+	});
+
 	// Trash/restore routes
 	injectRoute({
 		pattern: "/_emdash/api/content/[collection]/trash",

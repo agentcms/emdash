@@ -37,6 +37,7 @@ export {
 	getDraftStatus,
 	fetchContentList,
 	fetchContentAuthors,
+	fetchContentLocaleCounts,
 	type ContentAuthor,
 	type ContentDateField,
 	fetchContent,

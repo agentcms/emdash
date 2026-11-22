@@ -326,6 +326,8 @@ export interface EmDashHandlers {
 
 	handleContentAuthors: (collection: string) => Promise<HandlerResponse>;
 
+	handleContentLocaleCounts: (collection: string) => Promise<HandlerResponse>;
+
 	handleContentGet: (
 		collection: string,
 		id: string,

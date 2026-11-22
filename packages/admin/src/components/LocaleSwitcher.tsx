@@ -20,6 +20,8 @@ interface LocaleSwitcherProps {
 	onChange: (locale: string) => void;
 	/** Show "All locales" option (for list filtering) */
 	showAll?: boolean;
+	/** Entry count per locale, shown next to each locale (and the total next to "All locales") */
+	counts?: Record<string, number>;
 	className?: string;
 	/** Size variant */
 	size?: "sm" | "md";
@@ -44,10 +46,19 @@ export function LocaleSwitcher({
 	value,
 	onChange,
 	showAll = false,
+	counts,
 	className,
 	size = "md",
 }: LocaleSwitcherProps) {
-	const { t } = useLingui();
+	const { t, i18n } = useLingui();
+	const formatCount = (locale?: string) => {
+		if (!counts) return "";
+		const n =
+			locale === undefined
+				? Object.values(counts).reduce((sum, c) => sum + c, 0)
+				: (counts[locale] ?? 0);
+		return ` (${i18n.number(n)})`;
+	};
 	return (
 		<div className={cn("flex items-center gap-1.5", className)}>
 			<GlobeSimple
@@ -68,11 +79,17 @@ export function LocaleSwitcher({
 							: "h-9 appearance-none rounded-lg ps-3 pe-9 text-base",
 					)}
 				>
-					{showAll && <option value="">{t`All locales`}</option>}
+					{showAll && (
+						<option value="">
+							{t`All locales`}
+							{formatCount()}
+						</option>
+					)}
 					{locales.map((locale) => (
 						<option key={locale} value={locale}>
 							{locale.toUpperCase()}
 							{locale === defaultLocale ? t` (default)` : ""}
+							{formatCount(locale)}
 						</option>
 					))}
 				</select>

@@ -66,6 +66,7 @@ export type {
 export {
 	handleContentList,
 	handleContentAuthors,
+	handleContentLocaleCounts,
 	handleContentGet,
 	handleContentGetIncludingTrashed,
 	handleContentCreate,

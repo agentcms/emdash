@@ -8,6 +8,7 @@
 export {
 	handleContentList,
 	handleContentAuthors,
+	handleContentLocaleCounts,
 	type ContentAuthor,
 	handleContentGet,
 	handleContentGetIncludingTrashed,

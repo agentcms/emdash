@@ -89,6 +89,7 @@ import {
 	fetchManifest,
 	fetchContentList,
 	fetchContentAuthors,
+	fetchContentLocaleCounts,
 	fetchContent,
 	createContent,
 	updateContent,
@@ -678,6 +679,12 @@ function ContentListPage() {
 		enabled: !!manifest,
 	});
 
+	const { data: localeCounts } = useQuery({
+		queryKey: ["content", collection, "locale-counts"],
+		queryFn: () => fetchContentLocaleCounts(collection),
+		enabled: !!manifest?.i18n,
+	});
+
 	const contentList = usePagedQuery({
 		scope: ["content", collection],
 		queryKey: [
@@ -896,6 +903,7 @@ function ContentListPage() {
 			i18n={i18n}
 			activeLocale={activeLocale}
 			onLocaleChange={handleLocaleChange}
+			localeCounts={localeCounts?.counts}
 			urlPattern={collectionConfig.urlPattern}
 			titleField={collectionConfig.titleField}
 			dateField={collectionConfig.dateField}

@@ -900,6 +900,37 @@ describe("ContentList", () => {
 			const screen = await render(<ContentList {...defaultProps} />);
 			await expect.element(screen.getByText("Add New")).toBeInTheDocument();
 		});
+
+		it("shows the entry count of each locale in the locale switcher", async () => {
+			const screen = await render(
+				<ContentList
+					{...defaultProps}
+					i18n={{ defaultLocale: "en", locales: ["en", "fr", "de"] }}
+					activeLocale="en"
+					onLocaleChange={() => {}}
+					localeCounts={{ en: 12, fr: 3 }}
+				/>,
+			);
+			const select = screen.getByRole("combobox", { name: "Locale" });
+			await expect.element(select).toBeInTheDocument();
+			const labels = Array.from((select.element() as HTMLSelectElement).options, (o) => o.text);
+			expect(labels).toEqual(["EN (default) (12)", "FR (3)", "DE (0)"]);
+		});
+
+		it("leaves the locale switcher without counts until they load", async () => {
+			const screen = await render(
+				<ContentList
+					{...defaultProps}
+					i18n={{ defaultLocale: "en", locales: ["en", "fr"] }}
+					activeLocale="en"
+					onLocaleChange={() => {}}
+				/>,
+			);
+			const select = screen.getByRole("combobox", { name: "Locale" });
+			await expect.element(select).toBeInTheDocument();
+			const labels = Array.from((select.element() as HTMLSelectElement).options, (o) => o.text);
+			expect(labels).toEqual(["EN (default)", "FR"]);
+		});
 	});
 
 	describe("search", () => {

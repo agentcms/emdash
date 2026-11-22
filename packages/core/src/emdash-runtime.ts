@@ -225,6 +225,7 @@ import { changedStoragelessDataKeys, storagelessDataKeyError } from "./api/handl
 import {
 	handleContentList,
 	handleContentAuthors,
+	handleContentLocaleCounts,
 	handleContentGet,
 	handleContentGetIncludingTrashed,
 	handleContentCreate,
@@ -3834,6 +3835,10 @@ export class EmDashRuntime {
 
 	async handleContentAuthors(collection: string) {
 		return handleContentAuthors(this.db, collection);
+	}
+
+	async handleContentLocaleCounts(collection: string) {
+		return handleContentLocaleCounts(this.db, collection);
 	}
 
 	async handleContentGet(

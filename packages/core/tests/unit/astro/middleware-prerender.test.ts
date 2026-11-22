@@ -59,6 +59,7 @@ const {
 			handleContentList: ok,
 			handleContentGet: ok,
 			handleContentAuthors: ok,
+			handleContentLocaleCounts: ok,
 			handleContentCreate: ok,
 			handleContentUpdate: ok,
 			handleContentDelete: ok,

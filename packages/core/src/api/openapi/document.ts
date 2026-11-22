@@ -30,6 +30,7 @@ import {
 import {
 	contentCompareResponseSchema,
 	contentAuthorsResponseSchema,
+	contentLocaleCountsResponseSchema,
 	contentCreateBody,
 	contentItemSchema,
 	contentListQuery,
@@ -849,6 +850,30 @@ const contentPaths = {
 				},
 				...authErrors,
 				...standardErrors(500),
+			},
+		},
+	},
+	"/_emdash/api/content/{collection}/locale-counts": {
+		get: {
+			operationId: "countContentByLocale",
+			summary: "Count a collection's entries per locale",
+			tags: ["Content"],
+			requestParams: {
+				path: z.object({
+					collection: z.string().meta({ description: "Collection slug" }),
+				}),
+			},
+			responses: {
+				"200": {
+					description: "Live entries per locale, in every status",
+					content: {
+						[JSON_CONTENT]: {
+							schema: successEnvelope(contentLocaleCountsResponseSchema),
+						},
+					},
+				},
+				...authErrors,
+				...standardErrors(404, 500),
 			},
 		},
 	},

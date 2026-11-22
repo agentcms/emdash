@@ -1128,6 +1128,41 @@ export interface ContentAuthor {
 }
 
 /**
+ * Count a collection's live (non-trashed) entries per locale, in every status.
+ *
+ * Backs the entry counts in the admin content-list locale switcher.
+ */
+export async function handleContentLocaleCounts(
+	db: Kysely<Database>,
+	collection: string,
+): Promise<ApiResult<{ counts: Record<string, number>; total: number }>> {
+	try {
+		const repo = new ContentRepository(db);
+		const counts = await repo.countByLocale(collection);
+		const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
+		return { success: true, data: { counts, total } };
+	} catch (error) {
+		if (isMissingTableError(error)) {
+			return {
+				success: false,
+				error: {
+					code: "COLLECTION_NOT_FOUND",
+					message: `Collection '${collection}' not found`,
+				},
+			};
+		}
+		console.error("Content locale counts error:", error);
+		return {
+			success: false,
+			error: {
+				code: "CONTENT_COUNT_ERROR",
+				message: "Failed to count content per locale",
+			},
+		};
+	}
+}
+
+/**
  * List the distinct authors of a collection's live content.
  *
  * Backs the admin content-list author filter. Unlike `/admin/users` (ADMIN

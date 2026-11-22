@@ -488,6 +488,14 @@ export const contentAuthorsResponseSchema = z
 	})
 	.meta({ id: "ContentAuthorsResponse" });
 
+/** Live entries per locale, in every status */
+export const contentLocaleCountsResponseSchema = z
+	.object({
+		counts: z.record(z.string(), z.number().int()),
+		total: z.number().int(),
+	})
+	.meta({ id: "ContentLocaleCountsResponse" });
+
 /** Trashed content item */
 export const trashedContentItemSchema = z
 	.object({

@@ -917,6 +917,38 @@ describe("ContentList", () => {
 			expect(labels).toEqual(["EN (default) (12)", "FR (3)", "DE (0)"]);
 		});
 
+		it("offers All locales with the total count and reports it as an empty locale", async () => {
+			const onLocaleChange = vi.fn();
+			const screen = await render(
+				<ContentList
+					{...defaultProps}
+					i18n={{ defaultLocale: "en", locales: ["en", "fr"] }}
+					showAllLocales
+					onLocaleChange={onLocaleChange}
+					localeCounts={{ en: 12, fr: 3 }}
+				/>,
+			);
+			const select = screen.getByRole("combobox", { name: "Locale" });
+			await expect.element(select).toHaveValue("");
+			const labels = Array.from((select.element() as HTMLSelectElement).options, (o) => o.text);
+			expect(labels).toEqual(["All locales (15)", "EN (default) (12)", "FR (3)"]);
+
+			await select.selectOptions("fr");
+			expect(onLocaleChange).toHaveBeenLastCalledWith("fr");
+		});
+
+		it("hides the locale switcher without an active locale unless All locales is offered", async () => {
+			const screen = await render(
+				<ContentList
+					{...defaultProps}
+					i18n={{ defaultLocale: "en", locales: ["en", "fr"] }}
+					onLocaleChange={() => {}}
+				/>,
+			);
+			await expect.element(screen.getByText("Add New")).toBeInTheDocument();
+			expect(screen.getByRole("combobox", { name: "Locale" }).query()).toBeNull();
+		});
+
 		it("leaves the locale switcher without counts until they load", async () => {
 			const screen = await render(
 				<ContentList

@@ -145,8 +145,10 @@ export interface ContentListProps {
 	trashedCount?: number;
 	/** i18n config — present when multiple locales are configured */
 	i18n?: { defaultLocale: string; locales: string[]; prefixDefaultLocale?: boolean };
-	/** Currently active locale filter */
+	/** Currently active locale filter; undefined lists every locale when `showAllLocales` is set */
 	activeLocale?: string;
+	/** Offer an "All locales" choice in the locale switcher, selected while `activeLocale` is undefined */
+	showAllLocales?: boolean;
 	/** Callback when locale filter changes */
 	onLocaleChange?: (locale: string) => void;
 	/** Live entries per locale, shown in the locale switcher */
@@ -294,6 +296,7 @@ export function ContentList({
 	trashedCount = 0,
 	i18n,
 	activeLocale,
+	showAllLocales = false,
 	onLocaleChange,
 	localeCounts,
 	urlPattern,
@@ -322,6 +325,8 @@ export function ContentList({
 	trashPagination,
 }: ContentListProps) {
 	const { t, i18n: lingui } = useLingui();
+	// Listing every locale has no single locale to create in, so new entries start in the default one.
+	const newEntryLocale = activeLocale ?? i18n?.defaultLocale;
 	const pluginAdmins = usePluginAdmins();
 	const [activeTab, setActiveTab] = React.useState<ViewTab>("all");
 	const [searchQuery, setSearchQuery] = React.useState("");
@@ -524,12 +529,13 @@ export function ContentList({
 			<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
 				<div className="flex min-w-0 items-center gap-4">
 					<h1 className="text-2xl font-semibold leading-tight">{collectionLabel}</h1>
-					{i18n && activeLocale && onLocaleChange && (
+					{i18n && (activeLocale || showAllLocales) && onLocaleChange && (
 						<LocaleSwitcher
 							locales={i18n.locales}
 							defaultLocale={i18n.defaultLocale}
-							value={activeLocale}
+							value={activeLocale ?? ""}
 							onChange={onLocaleChange}
+							showAll={showAllLocales}
 							counts={localeCounts}
 							size="sm"
 						/>
@@ -538,7 +544,7 @@ export function ContentList({
 				<RouterLinkButton
 					to="/content/$collection/new"
 					params={{ collection }}
-					search={{ locale: activeLocale }}
+					search={{ locale: newEntryLocale }}
 					icon={<Plus />}
 				>
 					{t`Add New`}
@@ -816,7 +822,7 @@ export function ContentList({
 											<Link
 												to="/content/$collection/new"
 												params={{ collection }}
-												search={{ locale: activeLocale }}
+												search={{ locale: newEntryLocale }}
 												className="text-kumo-link underline"
 											>
 												{t`Create your first one`}

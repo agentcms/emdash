@@ -1084,6 +1084,145 @@ describe("ContentListPage – locale forwarding to the new-content route", () =>
 });
 
 // ---------------------------------------------------------------------------
+// Tests: ContentListPage – "All locales" choice
+// ---------------------------------------------------------------------------
+
+describe("ContentListPage – All locales", () => {
+	let mockFetch: ReturnType<typeof createMockFetch>;
+	let requests: string[];
+	let mockedFetch: typeof globalThis.fetch;
+
+	beforeEach(() => {
+		mockFetch = createMockFetch();
+		mockFetch
+			.on("GET", "/_emdash/api/manifest", { data: MANIFEST })
+			.on("GET", "/_emdash/api/auth/me", { data: { id: "user_01", role: 60 } })
+			.on("GET", "/_emdash/api/content/posts/locale-counts", {
+				data: { counts: { fr: 2, en: 1 }, total: 3 },
+			})
+			.on("GET", "/_emdash/api/content/posts", {
+				data: {
+					items: [
+						{
+							id: "p_fr",
+							type: "posts",
+							slug: "bonjour",
+							status: "draft",
+							locale: "fr",
+							data: { title: "Bonjour" },
+							authorId: "user_01",
+							createdAt: "2025-01-01T00:00:00Z",
+							updatedAt: "2025-01-02T00:00:00Z",
+							publishedAt: null,
+							scheduledAt: null,
+							liveRevisionId: null,
+							draftRevisionId: null,
+						},
+						{
+							id: "p_en",
+							type: "posts",
+							slug: "hello",
+							status: "draft",
+							locale: "en",
+							data: { title: "Hello" },
+							authorId: "user_01",
+							createdAt: "2025-01-01T00:00:00Z",
+							updatedAt: "2025-01-02T00:00:00Z",
+							publishedAt: null,
+							scheduledAt: null,
+							liveRevisionId: null,
+							draftRevisionId: null,
+						},
+					],
+					total: 2,
+				},
+			});
+		requests = [];
+		mockedFetch = globalThis.fetch;
+		globalThis.fetch = (input, init) => {
+			requests.push(
+				typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
+			);
+			return mockedFetch(input, init);
+		};
+	});
+
+	afterEach(() => {
+		globalThis.fetch = mockedFetch;
+		mockFetch.restore();
+	});
+
+	function listRequests() {
+		return requests
+			.map((url) => new URL(url, "http://localhost"))
+			.filter((url) => url.pathname === "/_emdash/api/content/posts");
+	}
+
+	it("lists every locale for ?locale=all and creates new entries in the default locale", async () => {
+		const { router, TestApp } = buildRouter();
+		await router.navigate({
+			to: "/content/$collection",
+			params: { collection: "posts" },
+			search: { locale: "all" },
+		});
+		const screen = await render(<TestApp />);
+
+		await expect.element(screen.getByText("Bonjour")).toBeInTheDocument();
+		await expect.element(screen.getByText("Hello")).toBeInTheDocument();
+		expect(listRequests().length).toBeGreaterThan(0);
+		expect(listRequests().every((url) => !url.searchParams.has("locale"))).toBe(true);
+
+		const select = screen.getByRole("combobox", { name: "Locale" });
+		await expect.element(select).toHaveValue("");
+		await expect.element(select).toHaveTextContent("All locales (3)");
+
+		const href = screen
+			.getByRole("link", { name: /add new/i })
+			.element()
+			.getAttribute("href");
+		expect(href).toContain("locale=fr");
+	});
+
+	it("keeps the choice in the URL when switching between All locales and one locale", async () => {
+		const { router, TestApp } = buildRouter();
+		await router.navigate({ to: "/content/$collection", params: { collection: "posts" } });
+		const screen = await render(<TestApp />);
+
+		const select = screen.getByRole("combobox", { name: "Locale" });
+		await expect.element(select).toHaveValue("fr");
+		await select.selectOptions("");
+		await vi.waitFor(() => expect(router.state.location.search).toEqual({ locale: "all" }));
+		await vi.waitFor(() =>
+			expect(listRequests().some((url) => !url.searchParams.has("locale"))).toBe(true),
+		);
+
+		await select.selectOptions("en");
+		await vi.waitFor(() => expect(router.state.location.search).toEqual({ locale: "en" }));
+		await vi.waitFor(() =>
+			expect(listRequests().some((url) => url.searchParams.get("locale") === "en")).toBe(true),
+		);
+	});
+
+	it("filters by a configured locale named all instead of listing every locale", async () => {
+		mockFetch.on("GET", "/_emdash/api/manifest", {
+			data: { ...MANIFEST, i18n: { defaultLocale: "fr", locales: ["fr", "all"] } },
+		});
+		const { router, TestApp } = buildRouter();
+		await router.navigate({
+			to: "/content/$collection",
+			params: { collection: "posts" },
+			search: { locale: "all" },
+		});
+		await render(<TestApp />);
+
+		await vi.waitFor(() =>
+			expect(listRequests().some((url) => url.searchParams.get("locale") === "all")).toBe(true),
+		);
+		expect(listRequests().every((url) => url.searchParams.has("locale"))).toBe(true);
+	});
+});
+
+// ---------------------------------------------------------------------------
 // Tests: ContentListPage – hook order stays stable across an erroring refetch
 // (regression for #1415: inline useCallback for onLoadMore sat below the early
 // returns, so a render that took the `error` guard ran one fewer hook → React

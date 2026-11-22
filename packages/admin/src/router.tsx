@@ -594,6 +594,9 @@ const calendarRoute = createRoute({
 	validateSearch: parseCalendarSearch,
 });
 
+/** Content-list `locale` search value that lists entries of every locale. */
+const ALL_LOCALES_SEARCH = "all";
+
 // Content list route
 const contentListRoute = createRoute({
 	getParentRoute: () => adminLayoutRoute,
@@ -621,8 +624,11 @@ function ContentListPage() {
 
 	const i18n = manifest?.i18n;
 
-	// Default to defaultLocale when i18n is enabled and no locale specified
-	const activeLocale = i18n ? (localeParam ?? i18n.defaultLocale) : undefined;
+	// Default to defaultLocale when i18n is enabled and no locale specified.
+	// `?locale=all` lists every locale unless a configured locale is literally "all".
+	const allLocales =
+		!!i18n && localeParam === ALL_LOCALES_SEARCH && !i18n.locales.includes(ALL_LOCALES_SEARCH);
+	const activeLocale = i18n && !allLocales ? (localeParam ?? i18n.defaultLocale) : undefined;
 
 	// Controlled sort state — passed to the list, and included in the query
 	// key so changing direction invalidates the current cursor chain.
@@ -879,7 +885,7 @@ function ContentListPage() {
 		void navigate({
 			to: "/content/$collection",
 			params: { collection },
-			search: { locale: locale || undefined },
+			search: { locale: locale || ALL_LOCALES_SEARCH },
 		});
 	};
 
@@ -902,6 +908,7 @@ function ContentListPage() {
 			canDuplicate={(item) => !currentUser || canDuplicateEntry(currentUser, item)}
 			i18n={i18n}
 			activeLocale={activeLocale}
+			showAllLocales={!!i18n}
 			onLocaleChange={handleLocaleChange}
 			localeCounts={localeCounts?.counts}
 			urlPattern={collectionConfig.urlPattern}
@@ -923,7 +930,8 @@ function ContentListPage() {
 			onBulkUnpublish={(ids) => bulkUnpublishMutation.mutateAsync(ids).then((r) => r.failedIds)}
 			onBulkDelete={(ids) => bulkDeleteMutation.mutateAsync(ids).then((r) => r.failedIds)}
 			bulkTagTaxonomies={
-				(currentUser?.role ?? 0) >= ROLE_EDITOR
+				// Terms belong to one locale, so tagging a mixed-locale selection has no single term set.
+				!allLocales && (currentUser?.role ?? 0) >= ROLE_EDITOR
 					? manifest.taxonomies.filter((taxonomy) => taxonomy.collections.includes(collection))
 					: []
 			}

@@ -3,6 +3,7 @@ import { beforeEach, afterEach, expect, it } from "vitest";
 import {
 	handleContentCreate,
 	handleContentDelete,
+	handleContentList,
 	handleContentLocaleCounts,
 } from "../../../src/api/handlers/content.js";
 import { SchemaRegistry } from "../../../src/schema/registry.js";
@@ -50,6 +51,19 @@ describeEachDialect("content locale counts", (dialect) => {
 		if (!result.success) throw new Error("counts failed");
 		expect(result.data.counts).toEqual({ "de-at": 2, "it-it": 1 });
 		expect(result.data.total).toBe(3);
+	});
+
+	it("lists entries of every locale when the list request omits the locale", async () => {
+		await create("a", "de-at");
+		await create("b", "it-it");
+
+		const all = await handleContentList(ctx.db, "posts", {});
+		if (!all.success) throw new Error("list failed");
+		expect(all.data.items.map((i) => i.locale).toSorted()).toEqual(["de-at", "it-it"]);
+
+		const one = await handleContentList(ctx.db, "posts", { locale: "it-it" });
+		if (!one.success) throw new Error("list failed");
+		expect(one.data.items.map((i) => i.slug)).toEqual(["b"]);
 	});
 
 	it("returns no counts for an empty collection", async () => {

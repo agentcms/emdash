@@ -290,7 +290,9 @@ const { translationGroup, translations } = await getTranslations("posts", post.d
 When i18n is enabled, the content list shows:
 
 - A **locale column** displaying each entry's locale
-- A **locale filter** in the toolbar to switch between locales
+- A **locale switcher** next to the heading, showing how many entries each locale holds (drafts, scheduled and published, not trashed)
+
+The list opens on the default locale. Choose **All locales** in the switcher to list the entries of every locale together; sort by the locale column to group them. The choice is kept in the URL as `?locale=all`, so it survives a reload and can be bookmarked. While all locales are listed, **Add New** creates the entry in the default locale, and bulk tagging is unavailable because terms belong to one locale.
 
 ### Creating translations
 
@@ -317,7 +319,7 @@ GET /_emdash/api/content/posts?locale=fr
 GET /_emdash/api/content/posts/my-post?locale=fr
 ```
 
-When a list request omits `locale`, it uses the configured default locale.
+When a list request omits `locale`, it returns entries of every locale.
 
 ### Creating translations via API
 
